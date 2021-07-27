@@ -17,28 +17,41 @@
                 //variable url
                 $url = '' ;
 
-                if (isset($_GET['url'])) {
-                    $url = explode('/',$_SERVER['PATH_INFO'],FILTER_SANITIZE_URL);
-                    print_r ($url);
-                    $controller = ucfirst(strtolower($url[0]));
+                if (isset($_SESSION['email'])) {
+                    $url = explode('/',$_GET['action'],FILTER_SANITIZE_URL);
+
+                    
+                    $controller = ucfirst(strtolower($url[1]));
                     $controllerClass = 'Controller'.$controller ;
                     $controllerFile = 'controllers/'.$controllerClass.'php';
+
+
                     if(file_exists($controllerFile)){
                         require_once($controllerFile);
-                        $this->ctrl = new $controllerClass($url) ;
+                        $this->ctrl = new $controllerClass($url);
                     }
                     else{
                         throw new \Exception("page introuvable" , 1);
                     }
-                }else{
-                    $url = explode('/',$_SERVER['PATH_INFO'],FILTER_SANITIZE_URL);
-                    print_r($url[1]);
                 }
-                // else{
-                //     print_r ($_GET['test']);
-                //     require_once('controllers/ControllerAuth.php');
-                //     $this->ctrl = new ControllerAuth(null);
-                // }
+                else{
+                    require_once('controllers/ControllerAuth.php');
+                    if (!isset($_GET['action'])) {
+                        return $this->ctrl = new ControllerAuth('register');
+                    }
+                    else{
+                        $url = explode('/auth',$_GET['action'],FILTER_SANITIZE_URL);
+                        if ($url[0] === 'login') {
+                            return $this->ctrl = new ControllerAuth('login');
+                        }
+                        else if ($url[0] === 'register') {
+                            return $this->ctrl = new ControllerAuth('register');
+                        }
+                        else{
+                            throw new \Exception("page introuvable" , 1);
+                        }
+                    }
+                }
             } catch (\Throwable $e) {
                 $error = $e->getMessage();
                 echo $error ;
